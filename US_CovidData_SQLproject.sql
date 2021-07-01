@@ -1,18 +1,27 @@
+--The first table in my COVID project database
+
 select *
 from PortfolioProject.dbo.CovidDeaths
 where continent is not null
 Order by 3,4
 
+
+--The second table in my COVID project database
+
 select *
 from PortfolioProject.dbo.CovidVac
 Order by 3,4
 
---select Data that we are going to be using
+
+
+--selecting Data, or specific table, that I am going to be manipulating
 
 select location, date, total_cases, new_cases, total_deaths, population
 from PortfolioProject.dbo.CovidDeaths
 where continent is null
 order by 1,2
+
+
 
 --looking at total cases vs total deaths
 --Shows likelihood of dying if you contract covid in your country
@@ -22,6 +31,8 @@ from PortfolioProject.dbo.CovidDeaths
 where location like '%states%'
 order by 1,2 
 
+
+
 --looking at the total cases vs population
 --shows what percentage of population got covid
 
@@ -30,6 +41,8 @@ from PortfolioProject.dbo.CovidDeaths
 where location like '%states%'
 order by 1,2 
 
+
+
 --looking at countries with highest infection rate compared to population
 
 select location, population, Max(total_cases) as HighestInfectionCount, Max((total_cases/population))*100 as PercentPopulationInfected
@@ -37,9 +50,12 @@ from PortfolioProject.dbo.CovidDeaths
 Group by location, population
 order by PercentPopulationInfected desc
 
+
+
+
 --Breaking down by continent
 
---Showing Continents with Highest Deathcount per Population
+--Showing continents with highest deathcount per population
 
 select continent, Max(cast(total_deaths as int)) as TotalDeathCount
 from PortfolioProject.dbo.CovidDeaths
@@ -52,7 +68,7 @@ order by TotalDeathCount desc
 --Global Numbers 
 
 --summing the new cases which will show the total cases given a day, sum of new deaths, calculating the global death percentage,
---dont forget to delete anything related to the date
+--Must delete anything related to the date
 
 select sum(new_cases) as total_Global_cases, sum(cast(new_deaths as int)) as total_Global_deaths, sum(cast(new_deaths as int))/sum(new_cases)*100 as GlobalDeathPercentage
 from PortfolioProject.dbo.CovidDeaths
@@ -60,12 +76,13 @@ where continent is not null
 --group by date
 order by 1,2 
 
--- Global population vs vaccinations or Total amount of people globally that have been vaccinated
--- need to partition by to break up by location, why?, because everytime there is a new location then the count needs to start over. 
---we are not allowing the aggrigate function to continue to run everytime theres a new location
--- example, run only threw canada then dont continue on to America.
---remember to conver to int and order by date
 
+
+-- Global population vs vaccinations or Total amount of people globally that have been vaccinated
+-- need to partition by to break up by location, why?, because everytime there is a new location then the count needs to start over for that location. 
+--we are not allowing the aggrigate function to continue to run everytime theres a new location
+--example: run only threw Canada then dont continue on into the US.
+--remember to convert to int and order by date
 
 select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations, sum(convert(int,vac.new_vaccinations)) over (partition by dea.location order by dea.date) as Rolling_People_Vaccinated
 from PortfolioProject.dbo.CovidDeaths dea
@@ -75,7 +92,9 @@ and dea.date = vac.date
 where dea.continent is not null
 order by 2,3
 
---cant use a column you just created for calculations. So must create a cte or temp table
+
+
+--cant use a column you just created for calculations. So, must create a cte or temp table
 --cte goal is to calculate the percent of people vaccinated in the US
 
 --temp table
@@ -101,6 +120,8 @@ join PortfolioProject.dbo.CovidVac vac
 
 select *, (Rolling_People_Vaccinated/population)*100
 from #Percent_Population_Vaccinated
+
+
 
 --creating a view to store data for later visualizations
 
